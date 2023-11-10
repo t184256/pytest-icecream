@@ -1,0 +1,60 @@
+[project]
+name = "pytest_icecream"
+version = "0.0.1"
+authors = [
+  { name="Alexander Sosedkin", email="monk@unboiled.info" },
+]
+description = "Automatically make ic() from icecream available"
+urls.homepage = "https://github.com/t184256/pytest-icecream"
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
+]
+requires-python = ">=3.11"
+dependencies = [
+  "pytest",
+  "icecream",
+] # TODO: list python dependencies
+optional-dependencies.test = [
+  "mypy", "pytest-mypy",
+  "ruff",
+]
+
+[project.entry-points."pytest11"]
+pytest_icecream = "pytest_icecream"
+
+[tool.setuptools.package-data]
+"*" = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "--mypy --doctest-modules"
+
+[tool.mypy]
+strict = true
+new_type_inference = true
+enable_incomplete_feature = ["TypeVarTuple", "Unpack"]
+
+[tool.ruff]
+line-length = 79
+preview = true
+select = [ "ALL" ]
+ignore = [
+  "ANN101",  # missing-type-self
+  "ANN102",  # missing-type-cls
+  "D105",  # undocumented-magic-method
+  "D203",  # one-blank-line-before-class
+  "D213",  # multi-line-summary-second-line
+]
+per-file-ignores."tests/**" = [
+  "INP001",  # implicit-namespace-package
+  "S101",  # assert
+]
+flake8-quotes.inline-quotes = "single"
+flake8-quotes.multiline-quotes = "single"
+flake8-copyright.notice-rgx = '# SPDX-FileCopyrightText: 2023 Alexander Sosedkin <monk@unboiled.info>\n# SPDX-License-Identifier: GPL-3.0\n'
+
+[tool.ruff.format]
+quote-style = "single"
+preview = true
