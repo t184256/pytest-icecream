@@ -9,8 +9,9 @@
       ];
       tools = pkgs: pyPackages: (with pyPackages; [
         pytestCheckHook
-        mypy pytest-mypy
-      ] ++ [pkgs.ruff]);
+        mypy
+        pre-commit-hooks
+      ] ++ (with pkgs; [ pre-commit ruff codespell actionlint ]));
 
       pytest-icecream-package = {pkgs, python3Packages}:
         python3Packages.buildPythonPackage {
@@ -78,6 +79,8 @@
             buildInputs = [(defaultPython3Packages.python.withPackages deps)];
             nativeBuildInputs = tools pkgs defaultPython3Packages;
             shellHook = ''
+              [ -e .git/hooks/pre-commit ] || \
+                echo "suggested: pre-commit install --install-hooks" >&2
               export PYTHONASYNCIODEBUG=1 PYTHONWARNINGS=error
             '';
           };

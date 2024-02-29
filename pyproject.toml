@@ -18,8 +18,12 @@ dependencies = [
   "icecream",
 ] # TODO: list python dependencies
 optional-dependencies.test = [
-  "mypy", "pytest-mypy",
+  "mypy",
   "ruff",
+  "pre-commit",
+  "pre-commit-hooks",
+  "codespell",
+  "actionlint-py",
 ]
 
 [project.entry-points."pytest11"]
@@ -29,12 +33,10 @@ pytest_icecream = "pytest_icecream"
 "*" = ["py.typed"]
 
 [tool.pytest.ini_options]
-addopts = "--mypy --doctest-modules"
+addopts = "--doctest-modules"
 
 [tool.mypy]
 strict = true
-new_type_inference = true
-enable_incomplete_feature = ["TypeVarTuple", "Unpack"]
 
 [tool.ruff]
 line-length = 79
