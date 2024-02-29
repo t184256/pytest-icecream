@@ -3,23 +3,33 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      deps = pyPackages: with pyPackages; [
+      pyDeps = pyPackages: with pyPackages; [
         icecream
         pytest
       ];
-      tools = pkgs: pyPackages: (with pyPackages; [
-        pytestCheckHook
-        mypy pytest-mypy
-      ] ++ [pkgs.ruff]);
+      pyTestDeps = pyPackages: with pyPackages; [
+        pytest pytestCheckHook
+      ];
+      pyTools = pyPackages: with pyPackages; [ mypy ];
+
+      tools = pkgs: with pkgs; [
+        pre-commit
+        ruff
+        codespell
+        actionlint
+        python3Packages.pre-commit-hooks
+      ];
 
       pytest-icecream-package = {pkgs, python3Packages}:
         python3Packages.buildPythonPackage {
           pname = "pytest-icecream";
           version = "0.0.1";
           src = ./.;
+          disabled = python3Packages.pythonOlder "3.11";
           format = "pyproject";
-          propagatedBuildInputs = deps python3Packages;
-          nativeBuildInputs = [ python3Packages.setuptools ];
+          build-system = [ python3Packages.setuptools ];
+          propagatedBuildInputs = pyDeps python3Packages;
+          checkInputs = pyTestDeps python3Packages;
           outputs = [ "out" "testout" ];
           postInstall = ''
             mkdir $testout
@@ -36,11 +46,11 @@
           src = python3Packages.pytest-icecream.testout;
           dontBuild = true;
           dontInstall = true;
-          nativeBuildInputs = deps python3Packages;
-          checkInputs = tools pkgs python3Packages ++ [
-            python3Packages.pytest-icecream
-          ];
-          prePatch = "find";
+          nativeBuildInputs = pyDeps python3Packages;
+          checkInputs =
+            pyDeps python3Packages ++ pyTestDeps python3Packages ++ [
+              python3Packages.pytest-icecream
+            ];
           checkPhase = "pytest -v";
         };
 
@@ -75,9 +85,17 @@
         in
         {
           devShells.default = pkgs.mkShell {
-            buildInputs = [(defaultPython3Packages.python.withPackages deps)];
-            nativeBuildInputs = tools pkgs defaultPython3Packages;
+            buildInputs = [(defaultPython3Packages.python.withPackages (
+              pyPkgs: pyDeps pyPkgs ++ pyTestDeps pyPkgs ++ pyTools pyPkgs
+            ))];
+            nativeBuildInputs = [(pkgs.buildEnv {
+              name = "pytest-icecream-tools-env";
+              pathsToLink = [ "/bin" ];
+              paths = tools pkgs;
+            })];
             shellHook = ''
+              [ -e .git/hooks/pre-commit ] || \
+                echo "suggestion: pre-commit install --install-hooks" >&2
               export PYTHONASYNCIODEBUG=1 PYTHONWARNINGS=error
             '';
           };
