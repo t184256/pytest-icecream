@@ -72,10 +72,6 @@
         let
           pkgs = import nixpkgs { inherit system; overlays = [ overlay-all ]; };
           defaultPython3Packages = pkgs.python311Packages;  # force 3.11
-
-          pytest-icecream = pkgs.callPackage pytest-icecream-package {
-            python3Packages = defaultPython3Packages;
-          };
         in
         {
           devShells.default = pkgs.mkShell {
